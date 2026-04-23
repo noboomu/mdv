@@ -1,0 +1,302 @@
+/* mdv - industrial/scientific aesthetic, dark default, high contrast. */
+
+@font-face {
+  font-family: 'InterVariable';
+  src: url('mdv-asset://local/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'InterVariable';
+  src: url('mdv-asset://local/fonts/InterVariable-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --bg:        #0b0d10;
+  --bg-raised: #14171c;
+  --bg-code:   #0f1216;
+  --fg:        #e6e8eb;
+  --fg-muted:  #8a9199;
+  --fg-dim:    #5a6068;
+  --accent:    #c5d1ff;
+  --accent-2:  #6ea8fe;
+  --warn:      #e8b14a;
+  --danger:    #e85c5c;
+  --ok:        #79c28a;
+  --border:    #22262c;
+  --border-strong: #333a42;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --sans: 'InterVariable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html[data-theme='light'] {
+  --bg:        #f5f5f2;
+  --bg-raised: #ffffff;
+  --bg-code:   #eceef2;
+  --fg:        #111318;
+  --fg-muted:  #40464d;
+  --fg-dim:    #737a82;
+  --accent:    #2c3a74;
+  --accent-2:  #2059c2;
+  --border:    #d8dbe0;
+  --border-strong: #a8adb4;
+}
+html[data-theme='light'] .katex { color: #111318; }
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-feature-settings: 'ss01', 'cv11', 'tnum';
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.mdv-topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mdv-topbar-left { display: flex; gap: 0.5rem; }
+.mdv-doc-title {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+  max-width: 60ch;
+}
+
+.mdv-nav-btn {
+  font: inherit;
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 120ms, border-color 120ms;
+}
+.mdv-nav-btn:hover:not(:disabled) { background: var(--bg); border-color: var(--accent-2); }
+.mdv-nav-btn:disabled { color: var(--fg-dim); border-color: var(--border); cursor: not-allowed; }
+
+#mdv-banners { display: flex; flex-direction: column; gap: 0; }
+.mdv-banner {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.mdv-banner-warn   { background: color-mix(in srgb, var(--warn) 16%, var(--bg)); color: var(--warn); }
+.mdv-banner-stream { background: color-mix(in srgb, var(--accent-2) 14%, var(--bg)); color: var(--accent-2); }
+.mdv-banner-info   { background: var(--bg-raised); color: var(--fg-muted); }
+.mdv-banner b { font-weight: 600; letter-spacing: 0.08em; }
+
+.mdv-content {
+  max-width: 78ch;
+  margin: 2rem auto;
+  padding: 0 1.5rem 5rem;
+}
+
+.mdv-content h1, .mdv-content h2, .mdv-content h3,
+.mdv-content h4, .mdv-content h5, .mdv-content h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 1.8rem 0 0.6rem;
+  letter-spacing: -0.01em;
+}
+.mdv-content h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border-strong); padding-bottom: 0.3rem; }
+.mdv-content h2 { font-size: 1.4rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+.mdv-content h3 { font-size: 1.15rem; }
+.mdv-content h4 { font-size: 1.0rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+
+.mdv-content p { margin: 0.6rem 0; }
+.mdv-content a { color: var(--accent-2); text-decoration: none; border-bottom: 1px dotted var(--accent-2); }
+.mdv-content a:hover { border-bottom-style: solid; }
+
+.mdv-content ul, .mdv-content ol { padding-left: 1.5rem; margin: 0.6rem 0; }
+.mdv-content li { margin: 0.2rem 0; }
+.mdv-content li > input[type="checkbox"] { margin-right: 0.4em; accent-color: var(--accent-2); }
+
+/* Inverted card: light panel floating on the dark canvas, with a lifted
+ * shadow and a signature accent edge. High contrast on purpose - a quoted
+ * voice should visually separate from the running prose. */
+.mdv-content blockquote {
+  margin: 1.5rem 0;
+  padding: 0.9rem 1.25rem 0.9rem 1.5rem;
+  border-left: 4px solid var(--accent-2);
+  color: #14171c;
+  background: #f2f3f5;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+  font-style: italic;
+}
+.mdv-content blockquote p { margin: 0.35rem 0; }
+.mdv-content blockquote a {
+  color: var(--accent-2);
+  border-bottom-color: var(--accent-2);
+}
+/* Light theme: flip the invert - the dark canvas isn't available here, so
+ * we present a pressed dark card instead for the same separation. */
+html[data-theme='light'] .mdv-content blockquote {
+  color: #e6e8eb;
+  background: #1a1d22;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+html[data-theme='light'] .mdv-content blockquote a {
+  color: #9bb8ff;
+  border-bottom-color: #9bb8ff;
+}
+
+.mdv-content code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--bg-code);
+  padding: 0.08em 0.35em;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.mdv-content pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  font-size: 0.88em;
+  line-height: 1.5;
+  margin: 1rem 0;
+}
+.mdv-content pre code { background: transparent; border: none; padding: 0; }
+
+.mdv-content table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border-strong);
+}
+.mdv-content th, .mdv-content td {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.mdv-content th { background: var(--bg-raised); font-weight: 600; text-transform: uppercase; font-size: 0.78em; letter-spacing: 0.06em; }
+
+.mdv-content hr {
+  border: none;
+  border-top: 1px solid var(--border-strong);
+  margin: 2rem 0;
+}
+
+.mdv-content img {
+  max-width: 100%;
+  border: 1px solid var(--border);
+}
+
+/* Plain text (non-markdown) fallback. */
+.mdv-content pre.plain {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  padding: 1rem 1.2rem;
+  white-space: pre;
+}
+
+/* Non-renderable card. */
+.mdv-nonrender {
+  margin: 3rem auto; max-width: 52ch;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+  padding: 1.2rem 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+}
+.mdv-nonrender-title {
+  color: var(--warn);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+}
+.mdv-nonrender dl { display: grid; grid-template-columns: 8ch 1fr; gap: 0.2rem 0.8rem; margin: 0.4rem 0 0.8rem; }
+.mdv-nonrender dt { color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.mdv-nonrender dd { margin: 0; color: var(--fg); word-break: break-all; }
+
+/* Review panel. */
+.mdv-review {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--bg-raised);
+  border-top: 1px solid var(--accent-2);
+  padding: 0.6rem 1rem 0.7rem;
+  z-index: 30;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.35);
+}
+.mdv-review[hidden] { display: none; }
+.mdv-review form { display: flex; flex-direction: column; gap: 0.5rem; max-width: 80ch; margin: 0 auto; }
+.mdv-review textarea {
+  width: 100%;
+  resize: none;
+  min-height: calc(1.4em * 2 + 0.6rem);
+  max-height: calc(1.4em * 8 + 0.6rem);
+  font: inherit;
+  font-family: var(--sans);
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  padding: 0.45rem 0.6rem;
+  line-height: 1.4;
+}
+.mdv-review textarea:focus { outline: none; border-color: var(--accent-2); }
+.mdv-review-buttons { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.mdv-btn {
+  font: inherit;
+  padding: 0.4rem 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+.mdv-btn:disabled { color: var(--fg-dim); border-color: var(--border); cursor: not-allowed; }
+.mdv-btn-accent { background: var(--accent-2); color: #0b0d10; border-color: var(--accent-2); }
+.mdv-btn-accent:hover:not(:disabled) { filter: brightness(1.1); }
+.mdv-btn-muted:hover:not(:disabled)  { border-color: var(--warn); color: var(--warn); }
+.mdv-review-pill {
+  display: inline-block;
+  margin: 0 auto;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+/* Bottom padding for review-mode documents so content never hides under the panel. */
+body.mdv-review-on .mdv-content { padding-bottom: 14rem; }
+body.mdv-review-on #mdv-streaming-tail { padding-bottom: 14rem; }
+
+/* Syntect output uses inline styles, but we tighten its scrollbars here. */
+.mdv-content pre::-webkit-scrollbar { height: 8px; }
+.mdv-content pre::-webkit-scrollbar-thumb { background: var(--border-strong); }

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>__TITLE__</title>
+  <link rel="stylesheet" href="mdv-asset://local/katex/katex.min.css">
+  <style>__STYLE__</style>
+</head>
+<body>
+  <header id="mdv-topbar" class="mdv-topbar">
+    <div class="mdv-topbar-left">
+      <button type="button" id="mdv-back" class="mdv-nav-btn" disabled>&lt; BACK</button>
+      <button type="button" id="mdv-fwd"  class="mdv-nav-btn" disabled>FORWARD &gt;</button>
+    </div>
+    <div class="mdv-topbar-right">
+      <span id="mdv-title" class="mdv-doc-title">__TITLE__</span>
+    </div>
+  </header>
+
+  <div id="mdv-banners">__BANNERS__</div>
+
+  <main id="mdv-content" class="mdv-content">__CONTENT__</main>
+
+  <div id="mdv-streaming-tail"></div>
+
+  <section id="mdv-review" class="mdv-review" hidden>
+    <form id="mdv-review-form">
+      <textarea id="mdv-review-text" rows="2" placeholder="Leave feedback..." spellcheck="true"></textarea>
+      <div class="mdv-review-buttons">
+        <button type="button" id="mdv-review-reject" class="mdv-btn mdv-btn-muted"  disabled>REJECT</button>
+        <button type="button" id="mdv-review-accept" class="mdv-btn mdv-btn-accent" disabled>ACCEPT</button>
+      </div>
+    </form>
+    <div id="mdv-review-pill" class="mdv-review-pill" hidden>FEEDBACK SUBMITTED</div>
+  </section>
+
+  <script src="mdv-asset://local/katex/katex.min.js"></script>
+  <script src="mdv-asset://local/katex/auto-render.min.js"></script>
+  <script>
+  (function () {
+    // ---- KaTeX ----
+    function runKatex(root) {
+      if (typeof renderMathInElement === 'undefined') return;
+      renderMathInElement(root || document.body, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true  },
+          { left: '\\[', right: '\\]', display: true  },
+          { left: '$',   right: '$',   display: false },
+          { left: '\\(', right: '\\)', display: false }
+        ],
+        throwOnError: false,
+        ignoredTags: ['script','noscript','style','textarea','pre','code','option']
+      });
+    }
+
+    // ---- IPC ----
+    function post(msg) {
+      try {
+        if (window.ipc && window.ipc.postMessage) {
+          window.ipc.postMessage(JSON.stringify(msg));
+          return;
+        }
+      } catch (_e) {}
+      // Fallback for plain-browser preview.
+      console.log('[mdv ipc]', msg);
+    }
+
+    // ---- Link interception ----
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a');
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      if (!href) return;
+      if (href.startsWith('mdv://nav/')) {
+        e.preventDefault();
+        post({ kind: 'nav', target: decodeURIComponent(href.slice('mdv://nav/'.length)) });
+        return;
+      }
+      if (/^https?:\/\//i.test(href)) {
+        e.preventDefault();
+        post({ kind: 'nav', target: href });
+        return;
+      }
+      // Anchor and other relative links: let webview handle normally.
+    }, true);
+
+    // ---- Back / Forward buttons ----
+    var backBtn = document.getElementById('mdv-back');
+    var fwdBtn  = document.getElementById('mdv-fwd');
+    if (backBtn) backBtn.addEventListener('click', function () { post({ kind: 'history', dir: 'back' }); });
+    if (fwdBtn)  fwdBtn.addEventListener('click',  function () { post({ kind: 'history', dir: 'fwd'  }); });
+
+    // ---- Review panel ----
+    var reviewSection = document.getElementById('mdv-review');
+    var ta   = document.getElementById('mdv-review-text');
+    var acc  = document.getElementById('mdv-review-accept');
+    var rej  = document.getElementById('mdv-review-reject');
+    var pill = document.getElementById('mdv-review-pill');
+
+    if (ta) {
+      ta.addEventListener('input', function () {
+        var has = ta.value.trim().length > 0;
+        if (acc) acc.disabled = !has;
+        if (rej) rej.disabled = !has;
+        // auto-grow up to 8 rows
+        ta.style.height = 'auto';
+        var maxH = 8 * 1.4 * parseFloat(getComputedStyle(ta).fontSize);
+        ta.style.height = Math.min(ta.scrollHeight, maxH) + 'px';
+      });
+    }
+
+    function submitVerdict(v) {
+      if (!ta || !ta.value.trim()) return;
+      post({ kind: 'review', verdict: v, text: ta.value });
+      var form = reviewSection && reviewSection.querySelector('form');
+      if (form) form.hidden = true;
+      if (pill) pill.hidden = false;
+    }
+    if (acc) acc.addEventListener('click', function () { submitVerdict('accept'); });
+    if (rej) rej.addEventListener('click', function () { submitVerdict('reject'); });
+
+    // ---- Host -> JS bridge ----
+    window.mdv = {
+
+      // Show / hide review panel.
+      enableReview: function () {
+        if (reviewSection) reviewSection.hidden = false;
+      },
+
+      // Set back/forward button enabled state.
+      // Called by Rust after every page load.
+      setHistory: function (hasBack, hasFwd) {
+        if (backBtn) backBtn.disabled = !hasBack;
+        if (fwdBtn)  fwdBtn.disabled  = !hasFwd;
+      },
+
+      // Update the window title text in the topbar.
+      setTitle: function (t) {
+        var el = document.getElementById('mdv-title');
+        if (el) el.textContent = t;
+      },
+
+      // Append a streaming chunk of rendered HTML.
+      // After appending, posts chunk_ack so Rust sends the next chunk.
+      appendChunk: function (html) {
+        var tail = document.getElementById('mdv-streaming-tail');
+        if (!tail) return;
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        tail.appendChild(tmp);
+        runKatex(tmp);
+        post({ kind: 'chunk_ack', next: 0 });
+      },
+
+      // Called after the last streaming chunk is delivered.
+      streamDone: function () {
+        var banners = document.getElementById('mdv-banners');
+        if (!banners) return;
+        var sb = banners.querySelector('.mdv-banner-stream');
+        if (!sb) return;
+        sb.textContent = '[ FULLY LOADED ]';
+        setTimeout(function () {
+          sb.style.transition = 'opacity 0.8s';
+          sb.style.opacity = '0';
+          setTimeout(function () { sb.remove(); }, 900);
+        }, 1500);
+      },
+
+      renderMath: runKatex
+    };
+
+    // Signal Rust that the page is interactive.
+    document.addEventListener('DOMContentLoaded', function () {
+      runKatex();
+      post({ kind: 'ready' });
+    });
+  })();
+  </script>
+</body>
+</html>
