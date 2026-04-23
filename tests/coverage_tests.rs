@@ -107,7 +107,10 @@ fn classify_webp_magic() {
 #[test]
 fn classify_non_utf8_no_magic_is_nontext() {
     // Bytes that don't match any magic signature but are invalid UTF-8.
-    let p = write_tmp("badbytes.bin", &[0x80, 0x81, 0x82, 0xFE, 0xFD, 0x90, 0x91, 0x92]);
+    let p = write_tmp(
+        "badbytes.bin",
+        &[0x80, 0x81, 0x82, 0xFE, 0xFD, 0x90, 0x91, 0x92],
+    );
     let cls = render::classify(&p).unwrap();
     assert!(
         matches!(cls.kind, render::DocKind::NonText { ref label } if label.contains("non-UTF8")),
@@ -181,7 +184,10 @@ fn asset_resolve_unknown_returns_none() {
 fn asset_resolve_strips_leading_slashes() {
     let with_slash = assets::resolve("/katex/katex.min.css");
     let without_slash = assets::resolve("katex/katex.min.css");
-    assert!(with_slash.is_some() && without_slash.is_some(), "both forms should resolve");
+    assert!(
+        with_slash.is_some() && without_slash.is_some(),
+        "both forms should resolve"
+    );
 }
 
 // ========================================================================
@@ -208,7 +214,10 @@ fn render_file_large_markdown_triggers_streaming() {
     assert!(ss.total_bytes > render::STREAM_THRESHOLD);
     // Should have a streaming banner
     assert!(
-        result.banners.iter().any(|b| matches!(b.level, render::BannerLevel::Stream)),
+        result
+            .banners
+            .iter()
+            .any(|b| matches!(b.level, render::BannerLevel::Stream)),
         "streaming banner missing"
     );
     cleanup("large_stream.md");
@@ -236,7 +245,11 @@ fn math_at_document_start() {
 #[test]
 fn math_at_document_end() {
     let out = html("ends with math $y = mx + b$");
-    assert!(out.contains("$y = mx + b$"), "math at doc end lost: {}", out);
+    assert!(
+        out.contains("$y = mx + b$"),
+        "math at doc end lost: {}",
+        out
+    );
 }
 
 #[test]
@@ -264,25 +277,41 @@ fn math_with_braces_preserved() {
 #[test]
 fn math_with_subscripts_and_superscripts() {
     let out = html("$x_{i}^{2}$");
-    assert!(out.contains("x_{i}^{2}"), "subscript/superscript lost: {}", out);
+    assert!(
+        out.contains("x_{i}^{2}"),
+        "subscript/superscript lost: {}",
+        out
+    );
 }
 
 #[test]
 fn tilde_fence_protects_math_content() {
     let out = html("~~~\n$not_math$\n~~~");
-    assert!(out.contains("$not_math$"), "dollar inside tilde fence was eaten: {}", out);
+    assert!(
+        out.contains("$not_math$"),
+        "dollar inside tilde fence was eaten: {}",
+        out
+    );
 }
 
 #[test]
 fn inline_backtick_protects_dollar() {
     let out = html("Use `$HOME` to reference home dir.");
-    assert!(out.contains("$HOME"), "dollar inside inline code was eaten: {}", out);
+    assert!(
+        out.contains("$HOME"),
+        "dollar inside inline code was eaten: {}",
+        out
+    );
 }
 
 #[test]
 fn multi_backtick_inline_protects_content() {
     let out = html("Use `` `$x` `` for literal backtick-dollar.");
-    assert!(out.contains("$x"), "dollar inside double backtick code was eaten: {}", out);
+    assert!(
+        out.contains("$x"),
+        "dollar inside double backtick code was eaten: {}",
+        out
+    );
 }
 
 #[test]
@@ -309,27 +338,51 @@ fn unclosed_dollar_not_stashed() {
 #[test]
 fn mailto_link_not_rewritten() {
     let out = html("[email](mailto:user@example.com)");
-    assert!(out.contains("mailto:user@example.com"), "mailto mangled: {}", out);
-    assert!(!out.contains("mdv://nav/"), "mailto incorrectly rewritten: {}", out);
+    assert!(
+        out.contains("mailto:user@example.com"),
+        "mailto mangled: {}",
+        out
+    );
+    assert!(
+        !out.contains("mdv://nav/"),
+        "mailto incorrectly rewritten: {}",
+        out
+    );
 }
 
 #[test]
 fn ftp_link_not_rewritten() {
     let out = html("[files](ftp://ftp.example.com/pub)");
-    assert!(out.contains("ftp://ftp.example.com"), "ftp mangled: {}", out);
-    assert!(!out.contains("mdv://nav/"), "ftp incorrectly rewritten: {}", out);
+    assert!(
+        out.contains("ftp://ftp.example.com"),
+        "ftp mangled: {}",
+        out
+    );
+    assert!(
+        !out.contains("mdv://nav/"),
+        "ftp incorrectly rewritten: {}",
+        out
+    );
 }
 
 #[test]
 fn image_link_not_rewritten() {
     let out = html("[photo](picture.png)");
-    assert!(!out.contains("mdv://nav/"), "non-md local link should not be rewritten: {}", out);
+    assert!(
+        !out.contains("mdv://nav/"),
+        "non-md local link should not be rewritten: {}",
+        out
+    );
 }
 
 #[test]
 fn absolute_md_link_rewritten() {
     let out = html("[abs](/docs/other.md)");
-    assert!(out.contains("mdv://nav/"), "absolute .md link not rewritten: {}", out);
+    assert!(
+        out.contains("mdv://nav/"),
+        "absolute .md link not rewritten: {}",
+        out
+    );
 }
 
 #[test]
@@ -342,8 +395,16 @@ fn md_link_with_fragment_preserves_anchor() {
 #[test]
 fn http_link_case_insensitive() {
     let out = html("[site](HTTPS://EXAMPLE.COM)");
-    assert!(out.contains("HTTPS://EXAMPLE.COM"), "http link mangled: {}", out);
-    assert!(!out.contains("mdv://nav/"), "http link incorrectly rewritten: {}", out);
+    assert!(
+        out.contains("HTTPS://EXAMPLE.COM"),
+        "http link mangled: {}",
+        out
+    );
+    assert!(
+        !out.contains("mdv://nav/"),
+        "http link incorrectly rewritten: {}",
+        out
+    );
 }
 
 // ========================================================================
@@ -362,7 +423,10 @@ fn build_page_renders_warn_banner() {
         streaming: None,
     };
     let page = render::build_page(&result, false);
-    assert!(page.contains("mdv-banner-warn"), "warn banner class missing");
+    assert!(
+        page.contains("mdv-banner-warn"),
+        "warn banner class missing"
+    );
     assert!(page.contains("PARSE NOTICES"), "warn prefix missing");
     assert!(page.contains("1 unclosed code fence"), "warn text missing");
 }
@@ -383,7 +447,10 @@ fn build_page_renders_stream_banner() {
         }),
     };
     let page = render::build_page(&result, false);
-    assert!(page.contains("mdv-banner-stream"), "stream banner class missing");
+    assert!(
+        page.contains("mdv-banner-stream"),
+        "stream banner class missing"
+    );
     assert!(page.contains("STREAMING"), "stream text missing");
 }
 
@@ -399,7 +466,10 @@ fn build_page_renders_info_banner() {
         streaming: None,
     };
     let page = render::build_page(&result, false);
-    assert!(page.contains("mdv-banner-info"), "info banner class missing");
+    assert!(
+        page.contains("mdv-banner-info"),
+        "info banner class missing"
+    );
     assert!(page.contains("NOTE"), "info prefix missing");
 }
 
@@ -412,8 +482,14 @@ fn build_page_escapes_title_html() {
         streaming: None,
     };
     let page = render::build_page(&result, false);
-    assert!(!page.contains("<script>alert"), "title not escaped - XSS possible");
-    assert!(page.contains("&lt;script&gt;"), "title should be HTML-escaped");
+    assert!(
+        !page.contains("<script>alert"),
+        "title not escaped - XSS possible"
+    );
+    assert!(
+        page.contains("&lt;script&gt;"),
+        "title should be HTML-escaped"
+    );
 }
 
 #[test]
@@ -426,7 +502,10 @@ fn build_page_contains_katex_script_tags() {
     };
     let page = render::build_page(&result, false);
     assert!(page.contains("katex.min.js"), "KaTeX JS script tag missing");
-    assert!(page.contains("auto-render.min.js"), "auto-render script tag missing");
+    assert!(
+        page.contains("auto-render.min.js"),
+        "auto-render script tag missing"
+    );
     assert!(page.contains("katex.min.css"), "KaTeX CSS link tag missing");
 }
 
@@ -440,8 +519,14 @@ fn build_page_contains_ipc_bridge() {
     };
     let page = render::build_page(&result, false);
     assert!(page.contains("window.mdv"), "IPC bridge object missing");
-    assert!(page.contains("window.ipc"), "IPC postMessage bridge missing");
-    assert!(page.contains("DOMContentLoaded"), "ready event handler missing");
+    assert!(
+        page.contains("window.ipc"),
+        "IPC postMessage bridge missing"
+    );
+    assert!(
+        page.contains("DOMContentLoaded"),
+        "ready event handler missing"
+    );
 }
 
 // ========================================================================
@@ -451,21 +536,37 @@ fn build_page_contains_ipc_bridge() {
 #[test]
 fn code_block_produces_highlighted_wrapper() {
     let out = html("```rust\nfn main() {}\n```");
-    assert!(out.contains("mdv-code"), "syntax highlight wrapper div missing: {}", out);
-    assert!(out.contains("data-lang=\"rust\""), "language tag missing: {}", out);
+    assert!(
+        out.contains("mdv-code"),
+        "syntax highlight wrapper div missing: {}",
+        out
+    );
+    assert!(
+        out.contains("data-lang=\"rust\""),
+        "language tag missing: {}",
+        out
+    );
 }
 
 #[test]
 fn code_block_unknown_lang_still_renders() {
     let out = html("```zortlang\nfoo bar baz\n```");
-    assert!(out.contains("mdv-code"), "wrapper div missing for unknown lang: {}", out);
+    assert!(
+        out.contains("mdv-code"),
+        "wrapper div missing for unknown lang: {}",
+        out
+    );
     assert!(out.contains("foo bar baz"), "code content missing: {}", out);
 }
 
 #[test]
 fn indented_code_block_renders() {
     let out = html("Paragraph.\n\n    indented code line\n    another line\n\nParagraph.");
-    assert!(out.contains("indented code line"), "indented code missing: {}", out);
+    assert!(
+        out.contains("indented code line"),
+        "indented code missing: {}",
+        out
+    );
 }
 
 // ========================================================================
@@ -492,7 +593,13 @@ fn append_review_test(out: &Path, source: &Path, verdict: &str, text: &str) -> s
 fn review_escapes_backslashes() {
     let out = tmp("review_backslash.md");
     let _ = std::fs::remove_file(&out);
-    append_review_test(&out, Path::new("/doc.md"), "accept", r"path is C:\Users\name").unwrap();
+    append_review_test(
+        &out,
+        Path::new("/doc.md"),
+        "accept",
+        r"path is C:\Users\name",
+    )
+    .unwrap();
     let content = std::fs::read_to_string(&out).unwrap();
     assert!(
         content.contains("C:\\\\Users\\\\name"),
@@ -509,7 +616,10 @@ fn review_handles_empty_text() {
     append_review_test(&out, Path::new("/doc.md"), "reject", "").unwrap();
     let content = std::fs::read_to_string(&out).unwrap();
     assert!(content.contains("[REJECT]"), "verdict missing");
-    assert!(content.contains("\"\""), "empty text should produce empty quotes");
+    assert!(
+        content.contains("\"\""),
+        "empty text should produce empty quotes"
+    );
     cleanup("review_empty.md");
 }
 
@@ -551,7 +661,11 @@ fn stream_multiple_chunks_cover_full_document() {
         chunks += 1;
     }
     assert_eq!(cursor, total, "all lines should be consumed");
-    assert!(chunks > 1, "should take multiple chunks for {} lines", total);
+    assert!(
+        chunks > 1,
+        "should take multiple chunks for {} lines",
+        total
+    );
 }
 
 // ========================================================================
@@ -563,13 +677,21 @@ fn no_warning_for_clean_table() {
     let md = "| a | b |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |\n";
     let w = render::detect_warnings(md);
     let table_warns: Vec<_> = w.iter().filter(|s| s.contains("mismatch")).collect();
-    assert!(table_warns.is_empty(), "false positive table warning: {:?}", w);
+    assert!(
+        table_warns.is_empty(),
+        "false positive table warning: {:?}",
+        w
+    );
 }
 
 #[test]
 fn no_warning_for_empty_document() {
     let w = render::detect_warnings("");
-    assert!(w.is_empty(), "empty doc should produce no warnings: {:?}", w);
+    assert!(
+        w.is_empty(),
+        "empty doc should produce no warnings: {:?}",
+        w
+    );
 }
 
 #[test]
@@ -615,17 +737,35 @@ fn html_escape_all_special_chars_together() {
 
 #[test]
 fn html_template_is_valid_html() {
-    assert!(assets::HTML_TEMPLATE.contains("<!DOCTYPE html>"), "template missing doctype");
-    assert!(assets::HTML_TEMPLATE.contains("</html>"), "template missing closing html tag");
-    assert!(assets::HTML_TEMPLATE.contains("__CONTENT__"), "template missing content placeholder");
-    assert!(assets::HTML_TEMPLATE.contains("__TITLE__"), "template missing title placeholder");
+    assert!(
+        assets::HTML_TEMPLATE.contains("<!DOCTYPE html>"),
+        "template missing doctype"
+    );
+    assert!(
+        assets::HTML_TEMPLATE.contains("</html>"),
+        "template missing closing html tag"
+    );
+    assert!(
+        assets::HTML_TEMPLATE.contains("__CONTENT__"),
+        "template missing content placeholder"
+    );
+    assert!(
+        assets::HTML_TEMPLATE.contains("__TITLE__"),
+        "template missing title placeholder"
+    );
 }
 
 #[test]
 fn style_css_is_non_empty_and_has_theme() {
     assert!(!assets::STYLE_CSS.is_empty(), "embedded CSS is empty");
-    assert!(assets::STYLE_CSS.contains("--bg"), "CSS missing theme variables");
-    assert!(assets::STYLE_CSS.contains("mdv-content"), "CSS missing content class");
+    assert!(
+        assets::STYLE_CSS.contains("--bg"),
+        "CSS missing theme variables"
+    );
+    assert!(
+        assets::STYLE_CSS.contains("mdv-content"),
+        "CSS missing content class"
+    );
 }
 
 #[test]
